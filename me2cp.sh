@@ -7,9 +7,10 @@
 wd=$(pwd) #local dev directory
 pd="/media/$USER/CIRCUITPY" # device location
 # local directory of circuitpy libraries
-libdir="/home/$USER/circuitpy/libs/adafruit-circuitpython-bundle-8.x-mpy-20221027/lib"
+libdir="/home/$USER/circuitpy/libs/adafruit-circuitpython-bundle-8.x-mpy-20221029/lib"
 
 # copy the library .mpy files to the device
+rm -rf $pd/lib/*
 for file in $(cat libs.txt); do
 	src=$libdir/$file
 	dst=$pd/lib/$file
