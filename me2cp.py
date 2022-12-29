@@ -10,10 +10,10 @@ import os
 class me2cp:
 
     def __init__(self, initproj=False):
-        configpath = pathlib.Path(".cpyconfig")
+        configpath = pathlib.Path("proj.yaml")
         if not configpath.exists() or initproj:
             shutil.copyfile(f"/home/{os.getlogin()}/shell/cpyconfig.default", 
-                            ".cpyconfig")
+                            "proj.yaml")
         with open(configpath, "r") as fp:
             self.config = load(fp.read(), Loader=Loader)
 

@@ -2,7 +2,7 @@ workdir: .
 devdir: /media/skippyelvis/CIRCUITPY
 devname: 1
 ignore:
-    - .cpyconfig
+    - proj.yaml
 libdir: /home/skippyelvis/circuitpy/libs/adafruit-circuitpython-bundle-8.x-mpy-20221029/lib
 libs:
     - adafruit_bus_device/
