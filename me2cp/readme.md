@@ -10,11 +10,11 @@ It relies on a project configuration file, `proj.yaml`.
 
 This file allows you to define
 
-    - the path of the device to copy to
-    - external/shared code folders to copy 
-    - files from local project directory to ignore when copying
-    - local directory containing circuitpython `.mpy` files
-    - `.mpy` libraries/modules to upload to devices `lib/`
+- the path of the device to copy to
+- external/shared code folders to copy 
+- files from local project directory to ignore when copying
+- local directory containing circuitpython `.mpy` files
+- `.mpy` libraries/modules to upload to devices `lib/`
 
 Check out the `cpyconfig.default` file for an example
 
