@@ -12,7 +12,7 @@ class me2cp:
     def __init__(self, initproj=False):
         configpath = pathlib.Path("proj.yaml")
         if not configpath.exists() or initproj:
-            shutil.copyfile(f"/home/{os.getlogin()}/shell/cpyconfig.default", 
+            shutil.copyfile(f"/home/{os.getlogin()}/shell/me2cp/cpyconfig.default", 
                             "proj.yaml")
         with open(configpath, "r") as fp:
             self.config = load(fp.read(), Loader=Loader)
@@ -51,10 +51,23 @@ class me2cp:
             else:
                 shutil.copy(libpath, devlibdir / pathlib.Path(lib))
 
+    def transfer_share(self):
+        if self.config.get("sharedir", None) is None:
+            return
+        sharedir = pathlib.Path(self.config["sharedir"])
+        devdir = pathlib.Path(self.config["devdir"])
+        for f in os.listdir(sharedir):
+            sharef = sharedir / pathlib.Path(f)
+            if sharef.is_dir():
+                shutil.copytree(sharef, devdir / pathlib.Path(f))
+            else:
+                shutil.copy(sharef, devdir / pathlib.Path(f))
+
     def __call__(self):
         self.clear_device()
         self.transfer_code()
         self.transfer_libs()
+        self.transfer_share()
 
 if __name__ == "__main__":
     import argparse

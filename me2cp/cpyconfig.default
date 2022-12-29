@@ -1,5 +1,6 @@
 workdir: .
 devdir: /media/skippyelvis/CIRCUITPY
+share: ../cpshare
 devname: 1
 ignore:
     - proj.yaml
