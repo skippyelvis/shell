@@ -1,48 +1,60 @@
-import subprocess
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+import pathlib
+import shutil
 import os
-import argparse
 
-template = '''wd={}
-pd={}
-libdir={}
+class me2cp:
 
-# copy the library .mpy files to the device
-rm -rf $pd/lib/*
-for file in $(cat libs.txt); do
-	src=$libdir/$file
-	dst=$pd/lib/$file
-	cp -r $src $dst
-done
+    def __init__(self):
+        configpath = pathlib.Path(".cpyconfig")
+        if not configpath.exists():
+            shutil.copyfile(f"/home/{os.getlogin()}/shell/cpyconfig.default", 
+                            ".cpyconfig")
+        with open(configpath, "r") as fp:
+            self.config = load(fp.read(), Loader=Loader)
 
-# copy all local files/folders not in the .cpignore file to the device
-if [ -e ".cpignore" ]; then
-	tomove=$(ls | grep -vw -E $(cat .cpignore | tr -s "\n" "|"))
-else
-	tomove=$(ls)
-fi
-for file in $tomove; do
-	src=$wd/$file
-	dst=$pd/$file
-	if [ -e "$dst" ]; then
-		rm -rf $dst
-	fi
-	cp -r $src $dst
-done'''
+    def clear_device(self):
+        for f in os.listdir(self.config["devdir"]):
+            if f in [".fseventsd", ".Trashes", ".metadata_never_index"]:
+                continue
+            path = pathlib.Path(self.config["devdir"]) / pathlib.Path(f)
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
 
-def me2cp(wd, pd, libdir):
-    print("starting me2cp")
-    global template
-    script = template.format(wd, pd, libdir)
-    out = subprocess.run(script, shell=True, capture_output=True)
-    print("stderr:")
-    print(out.stderr.decode())
-    print("stdout:")
-    print(out.stdout.decode())
+    def transfer_code(self):
+        files = os.listdir()
+        tomove = list(set(files) - set(self.config["ignore"]))
+        for f in tomove:
+            srcpath = pathlib.Path(self.config["workdir"]) / pathlib.Path(f)
+            dstpath = pathlib.Path(self.config["devdir"]) / pathlib.Path(f)
+            if srcpath.is_dir():
+                shutil.copytree(srcpath, dstpath)
+            else:
+                shutil.copy(srcpath, dstpath)
+
+    def transfer_libs(self):
+        devlibdir = pathlib.Path(self.config["devdir"]) / pathlib.Path("libs")
+        if not devlibdir.exists():
+            devlibdir.mkdir()
+        for lib in self.config["libs"]:
+            libpath = pathlib.Path(self.config["libdir"]) / pathlib.Path(lib)
+            if libpath.is_dir():
+                shutil.copytree(libpath, devlibdir / pathlib.Path(lib))
+            else:
+                shutil.copy(libpath, devlibdir / pathlib.Path(lib))
+
+    def __call__(self):
+        self.clear_device()
+        self.transfer_code()
+        self.transfer_libs()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--wd", default=os.getcwd())
-    parser.add_argument("--pd", default=f"/media/{os.getlogin()}/CIRCUITPY")
-    parser.add_argument("--libdir", default=f"/home/{os.getlogin()}/circuitpy/libs/adafruit-circuitpython-bundle-8.x-mpy-20221029/lib")
-    args = parser.parse_args()
-    me2cp(args.wd, args.pd, args.libdir)
+    from argparse import ArgumentParser
+    obj = me2cp()
+    obj()
