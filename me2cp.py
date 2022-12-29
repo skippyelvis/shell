@@ -9,9 +9,9 @@ import os
 
 class me2cp:
 
-    def __init__(self):
+    def __init__(self, initproj=False):
         configpath = pathlib.Path(".cpyconfig")
-        if not configpath.exists():
+        if not configpath.exists() or initproj:
             shutil.copyfile(f"/home/{os.getlogin()}/shell/cpyconfig.default", 
                             ".cpyconfig")
         with open(configpath, "r") as fp:
@@ -42,6 +42,8 @@ class me2cp:
         devlibdir = pathlib.Path(self.config["devdir"]) / pathlib.Path("libs")
         if not devlibdir.exists():
             devlibdir.mkdir()
+        if self.config.get("libs", None) is None:
+            return
         for lib in self.config["libs"]:
             libpath = pathlib.Path(self.config["libdir"]) / pathlib.Path(lib)
             if libpath.is_dir():
@@ -55,6 +57,12 @@ class me2cp:
         self.transfer_libs()
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
-    obj = me2cp()
-    obj()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--init", default=False, 
+                        help="initialize project directory",
+                        action=argparse.BooleanOptionalAction)
+    args = parser.parse_args()
+    obj = me2cp(initproj=args.init)
+    if not args.init:
+        obj()
